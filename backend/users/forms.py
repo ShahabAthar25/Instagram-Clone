@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 
-from .models import User
+from .models import User, UserFollowing
 
 class CustomUserCreationForm(UserCreationForm):
 
@@ -13,3 +13,15 @@ class CustomUserChangeForm(UserChangeForm):
     class Meta:
         model = User
         fields = ('email', 'username', 'first_name', 'last_name', 'website', 'bio')
+
+class UserFollowingCreationForm(UserChangeForm):
+
+    class Meta:
+        model = UserFollowing
+        fields = ('follower', 'followed')
+
+class UserFollowingChangeForm(UserChangeForm):
+
+    class Meta:
+        model = UserFollowing
+        fields = ('follower', 'followed')

@@ -12,6 +12,8 @@ class User(AbstractUser):
     profile_pic = models.ImageField(_('Profile Picture'), upload_to="users/", blank=True, null=True)
     website = models.URLField(_('Website'), max_length=200, validators=[MinLengthValidator(10)], blank=True, null=True)
     bio = models.CharField(_('Bio'), max_length=150, validators=[MinLengthValidator(1)], blank=True, null=True)
+    followers = models.ManyToManyField('self')
+    following = models.ManyToManyField('self')
 
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ('email', 'first_name', 'last_name')
@@ -20,3 +22,15 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username}"
+
+class UserFollowing(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="follower_set")
+    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followed_set")
+    followed_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ["follower", "followed"]
+        ordering = ["-followed_at"]
+    
+    def __str__(self):
+        return f"{self.follower} followed {self.followed}"
