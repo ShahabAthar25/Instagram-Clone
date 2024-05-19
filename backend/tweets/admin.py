@@ -4,6 +4,11 @@ from django.contrib import admin
 from .forms import *
 from .models import *
 
+class ImageInline(admin.TabularInline):
+    model = Image
+    form = ImageForm
+    extra = 1
+
 class TweetAdmin(admin.ModelAdmin):
     add_form = TweetCeationChangeForm
     form = TweetCeationChangeForm
@@ -26,8 +31,9 @@ class TweetAdmin(admin.ModelAdmin):
             'fields': ('content', 'quote_tweet')}
          ),
     )
+    inlines = [ImageInline]
 
-    search_fields = ('owner', 'content')
+    search_fields = ('owner__username', 'content')
     ordering = ('-created_at',)
     
     def save_model(self, request, obj, form, change):
@@ -35,5 +41,13 @@ class TweetAdmin(admin.ModelAdmin):
             obj.owner = request.user
 
         return super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        for formset in formsets:
+            if isinstance(formset, ImageInline):
+                for obj in formset.save(commit=False):
+                    obj.tweet = form.instance
+                    obj.save()
 
 admin.site.register(Tweet, TweetAdmin)
