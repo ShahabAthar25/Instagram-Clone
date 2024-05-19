@@ -53,7 +53,7 @@ class UserFollowingAdmin(admin.ModelAdmin):
     )
 
     search_fields = ('follower',)
-    ordering = ('followed_at',)
+    ordering = ('-followed_at',)
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserFollowing, UserFollowingAdmin)
