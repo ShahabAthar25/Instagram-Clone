@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # Local Apps
     'users',
     'tweets',
+    'lists',
 ]
 
 MIDDLEWARE = [
