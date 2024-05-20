@@ -11,9 +11,6 @@ class ImageInline(admin.TabularInline):
     extra = 1
 
 class TweetAdmin(admin.ModelAdmin):
-    add_form = TweetCeationChangeForm
-    form = TweetCeationChangeForm
-    
     model = Tweet
 
     list_display = ('owner', 'content', 'views', 'created_at')
@@ -58,4 +55,45 @@ class TweetAdmin(admin.ModelAdmin):
                     obj.tweet = form.instance
                     obj.save()
 
+class ReplyAdmin(admin.ModelAdmin):
+    model = Reply
+    
+    list_display = ('owner', 'content', 'views', 'created_at')
+    list_filter = ('created_at',)
+    
+    readonly_fields = ('views', 'created_at', 'owner', 'tweet', 'parent_reply')
+    
+    inlines = [ImageInline]
+
+    search_fields = ('owner__username', 'content')
+    ordering = ('-created_at',)
+    
+    def get_fieldsets(self, request, obj):
+        if not obj:
+            return (
+                (None, {'fields': ('tweet', 'parent_reply', 'content')}),
+            )
+        
+        return (
+            (None, {'fields': ('tweet', 'parent_reply', 'content', 'owner')}),
+            ('Statistics', {'fields': ('views',)}),
+            ('Dates', {'fields': ('created_at',)})
+        )
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.owner = request.user
+
+        return super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        for formset in formsets:
+            if isinstance(formset, ImageInline):
+                for obj in formset.save(commit=False):
+                    obj.tweet = form.instance
+                    obj.save()
+    
+
 admin.site.register(Tweet, TweetAdmin)
+admin.site.register(Reply, ReplyAdmin)

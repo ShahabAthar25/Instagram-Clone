@@ -8,6 +8,22 @@ class TweetCeationChangeForm(forms.ModelForm):
         model = Tweet
         fields = ('content', 'quote_tweet')
 
+class ReplyCreationForm(forms.ModelForm):
+    
+    class Meta:
+        model = Reply
+        fields = ('tweet', 'parent_reply', 'content')
+
+class ReplyChangeForm(forms.ModelForm):
+    
+    class Meta:
+        model = Reply
+        fields = ('tweet', 'parent_reply', 'content', 'owner')
+        widgets = {
+            'owner': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+        
+
 class ImageForm(forms.ModelForm):
 
     class Meta:
