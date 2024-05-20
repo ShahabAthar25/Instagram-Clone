@@ -71,5 +71,41 @@ class UserFollowingAdmin(admin.ModelAdmin):
         
         return super().save_model(request, obj, form, change)
 
+class BookmarkAdmin(admin.ModelAdmin):
+    model = Bookmark
+
+    list_display = ('user', 'tweet', 'created_at')
+    list_filter = ('created_at',)
+
+    readonly_fields = ('user', 'created_at')
+    
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('tweet',)}
+         ),
+    )
+
+    search_fields = ('user', 'tweet__content')
+    ordering = ('-created_at',)
+    
+    def get_fieldsets(self, request, obj):
+        if not obj:
+            return (
+                (None, {'fields': ('tweet',)}),
+            )
+        
+        return (
+            (None, {'fields': ('user', 'tweet')}),
+            ('Date', {'fields': ('created_at',)})
+        )
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            obj.user = request.user
+        
+        return super().save_model(request, obj, form, change)
+
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserFollowing, UserFollowingAdmin)
+admin.site.register(Bookmark, BookmarkAdmin)

@@ -34,3 +34,16 @@ class UserFollowing(models.Model):
     
     def __str__(self):
         return f"{self.follower} followed {self.followed}"
+
+from tweets.models import Tweet
+
+class Bookmark(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'tweet')
+    
+    def __str__(self):
+        return f"@{self.user.username}'s bookmark of tweet (ID: {self.tweet.pk})"
