@@ -18,7 +18,7 @@ class UserFollowingCreationForm(UserChangeForm):
 
     class Meta:
         model = UserFollowing
-        fields = ('follower', 'followed')
+        fields = ('followed',)
 
 class UserFollowingChangeForm(UserChangeForm):
 

@@ -1,5 +1,6 @@
 from typing import Any
 from django.contrib import admin
+from django.http import HttpRequest
 
 from .forms import *
 from .models import *
@@ -18,11 +19,6 @@ class TweetAdmin(admin.ModelAdmin):
     list_display = ('owner', 'content', 'views', 'created_at')
     list_filter = ('created_at',)
 
-    fieldsets = (
-        (None, {'fields': ('content', 'quote_tweet')}),
-        ('Statistics', {'fields': ('views',)}),
-        ('Dates', {'fields': ('created_at',)})
-    )
     readonly_fields = ('views', 'created_at')
 
     add_fieldsets = (
@@ -35,6 +31,18 @@ class TweetAdmin(admin.ModelAdmin):
 
     search_fields = ('owner__username', 'content')
     ordering = ('-created_at',)
+    
+    def get_fieldsets(self, request, obj):
+        if not obj:
+            return (
+                (None, {'fields': ('content', 'quote_tweet')}),
+            )
+        
+        return (
+            (None, {'fields': ('content', 'quote_tweet')}),
+            ('Statistics', {'fields': ('views',)}),
+            ('Dates', {'fields': ('created_at',)})
+        )
     
     def save_model(self, request, obj, form, change):
         if not obj.pk:
