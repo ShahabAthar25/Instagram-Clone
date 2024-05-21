@@ -63,7 +63,15 @@ class ListFollowersView(generics.ListAPIView):
         user = get_object_or_404(User, pk=self.kwargs["user_id"])
         
         return user.followers.all()
+
+class ListFollowingView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
     
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs["user_id"])
+        
+        return user.following.all()
 
 class FollowUnfollowView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
