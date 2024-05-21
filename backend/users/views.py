@@ -1,12 +1,11 @@
-from django.contrib.auth import get_user_model
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 from .serializers import *
+from .models import *
 
-User = get_user_model()
 
 class RegistrationView(generics.GenericAPIView):
     serializer_class = RegisterationSerializer
@@ -54,5 +53,34 @@ class LogoutView(generics.GenericAPIView):
             
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class FollowUnfollowView(generics.GenericAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    
+    def post(self, request, user_id, *args, **kwargs):
+        try:
+            follower = request.user
+            followed = get_object_or_404(User, pk=user_id)
+
+            UserFollowing.objects.create(follower=follower, followed=followed)
+            followed.followers.add(follower)
+            follower.following.add(followed)
+            
+            return Response(f"You have followed @{followed.username}.")
+        except Exception as e:
+            return Response("You have already followed this user.", status=status.HTTP_409_CONFLICT)
+        
+    def delete(self, request, user_id, *args, **kwargs):
+        follower = request.user
+        followed = get_object_or_404(User, pk=user_id)
+
+        user_following = UserFollowing.objects.filter(follower=follower, followed=followed)
+        if not user_following.exists():
+            return Response("You have not followed this user.", status=status.HTTP_409_CONFLICT)
+
+        user_following.delete()
+        followed.followers.remove(follower)
+        follower.following.remove(followed)
+        
+        return Response(f"You have unfollowed @{followed.username}.")
