@@ -19,7 +19,7 @@ class RegistrationView(generics.GenericAPIView):
         token = RefreshToken.for_user(user)
 
         data = serializer.data
-        data['tokens'] = { 'access_token': str(token.access_token), 'refresh_token': str(token) }
+        data['tokens'] = { 'access': str(token.access_token), 'refresh': str(token) }
         
         return Response(data, status=status.HTTP_201_CREATED)
 
@@ -35,20 +35,20 @@ class LoginView(generics.GenericAPIView):
         token = RefreshToken.for_user(user)
 
         data = serializer.data
-        data['tokens'] = { 'access_token': str(token.access_token), 'refresh_token': str(token) }
+        data['tokens'] = { 'access': str(token.access_token), 'refresh': str(token) }
         
         return Response(data, status=status.HTTP_200_OK)
     
 class LogoutView(generics.GenericAPIView):
+    serializer_class = LogoutSerializer
     permission_classes = (permissions.IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
         try:
-            refresh_token = request.data['refresh_token']
-            
-            if not refresh_token:
-                raise ValidationError(detail="No refresh token was provided")
-            
+            serializer = self.get_serializer(data=request.body)
+            serializer.is_valid(raise_exception=True)
+            refresh_token = serializers.data["refresh"]
+
             token = RefreshToken(refresh_token)
             token.blacklist()
             
