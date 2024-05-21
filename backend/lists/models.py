@@ -7,10 +7,10 @@ from tweets.models import Tweet
 User = get_user_model()
 
 class List(models.Model):
-    users = models.ManyToManyField(User, related_name="users_set")
-    tweets = models.ManyToManyField(Tweet, related_name="tweets_set")
+    users = models.ManyToManyField(User, related_name="users_set", blank=True)
+    tweets = models.ManyToManyField(Tweet, related_name="tweets_set", blank=True)
     title = models.CharField(max_length=255, validators=[MinLengthValidator(10)])
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
