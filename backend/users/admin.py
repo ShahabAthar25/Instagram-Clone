@@ -18,10 +18,11 @@ class CustomUserAdmin(UserAdmin):
 
     fieldsets = (
         (None, {'fields': ('username', 'email', 'first_name', 'last_name', 'profile_pic', 'website', 'bio', 'password')}),
+        ('Statistics', {'fields': ('get_followers', 'get_following')}),
         ('Permissions', {'fields': ('is_staff', 'is_active', 'is_superuser', 'groups', 'user_permissions')}),
         ('Dates', {'fields': ('last_login', 'date_joined')})
     )
-    readonly_fields = ('date_joined', 'last_login')
+    readonly_fields = ('date_joined', 'last_login', 'get_followers', 'get_following')
 
     add_fieldsets = (
         (None, {
@@ -32,6 +33,15 @@ class CustomUserAdmin(UserAdmin):
 
     search_fields = ('email', 'username', 'first_name', 'last_name')
     ordering = ('last_login',)
+    
+    def get_followers(self, obj):
+        return obj.followers.count()
+
+    def get_following(self, obj):
+        return obj.following.count()
+    
+    get_followers.short_description = 'Followers'
+    get_following.short_description = 'Following'
 
 class UserFollowingAdmin(admin.ModelAdmin):
     add_form = UserFollowingCreationForm
