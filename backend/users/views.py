@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from .serializers import *
 from .models import *
+from .permissions import IsOwnerOrReadOnlyPermission
 
 
 class RegistrationView(generics.GenericAPIView):
@@ -54,7 +55,13 @@ class LogoutView(generics.GenericAPIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        
+
+class RetrieveUpdateUserView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsOwnerOrReadOnlyPermission,)
+    lookup_field = "pk"
+
 class ListFollowersView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
