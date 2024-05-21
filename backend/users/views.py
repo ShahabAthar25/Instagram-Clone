@@ -10,6 +10,7 @@ from .permissions import IsOwnerOrReadOnlyPermission
 
 class RegistrationView(generics.GenericAPIView):
     serializer_class = RegisterationSerializer
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -25,6 +26,7 @@ class RegistrationView(generics.GenericAPIView):
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -41,7 +43,6 @@ class LoginView(generics.GenericAPIView):
     
 class LogoutView(generics.GenericAPIView):
     serializer_class = LogoutSerializer
-    permission_classes = (permissions.IsAuthenticated,)
     
     def post(self, request, *args, **kwargs):
         try:
@@ -64,7 +65,6 @@ class RetrieveUpdateUserView(generics.RetrieveUpdateAPIView):
 
 class ListFollowersView(generics.ListAPIView):
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
     
     def get_queryset(self):
         user = get_object_or_404(User, pk=self.kwargs["user_id"])
@@ -73,7 +73,6 @@ class ListFollowersView(generics.ListAPIView):
 
 class ListFollowingView(generics.ListAPIView):
     serializer_class = UserSerializer
-    permission_classes = (permissions.IsAuthenticated,)
     
     def get_queryset(self):
         user = get_object_or_404(User, pk=self.kwargs["user_id"])
@@ -81,7 +80,6 @@ class ListFollowingView(generics.ListAPIView):
         return user.following.all()
 
 class FollowUnfollowView(generics.GenericAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
     
     def post(self, request, user_id, *args, **kwargs):
         try:
