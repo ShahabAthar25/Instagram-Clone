@@ -1,4 +1,4 @@
-from rest_framework import status, generics, permissions
+from rest_framework import status, generics, permissions, mixins
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
@@ -54,6 +54,16 @@ class LogoutView(generics.GenericAPIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class ListFollowersView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs["user_id"])
+        
+        return user.followers.all()
+    
 
 class FollowUnfollowView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
