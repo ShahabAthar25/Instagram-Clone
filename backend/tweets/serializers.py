@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Tweet
+from .models import Tweet, Reply
 from users.serializers import UserSerializer
 
 class TweetSerializer(serializers.ModelSerializer):
@@ -14,7 +14,32 @@ class TweetSerializer(serializers.ModelSerializer):
             "views": { "read_only": True },
             "id": { "read_only": True },
         }
-    
+
+    def to_representation(self, instance):
+        request = super().to_representation(instance)
+        
+        replies = Reply.objects.filter(tweet__id=request.get("id"))[0:5]
+        request["replies"] = ReplySerializer(replies, many=True).data
+        
+        return request
+
     def create(self, validated_data):
         user = self.context["request"].user
         return Tweet.objects.create(owner=user, **validated_data)
+
+class ReplySerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Reply
+        exclude = ("tweet", "parent_reply")
+        extra_kwargs = {
+            "created_at": { "read_only": True },
+            "owner": { "read_only": True },
+            "views": { "read_only": True },
+            "id": { "read_only": True },
+        }
+    
+    def create(self, validated_data):
+        user = self.context["request"].user
+        return Reply.objects.create(owner=user, **validated_data)
