@@ -24,12 +24,16 @@ class TweetViewSet(ModelViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            data = serializer.data
+            tweets = serializer.data
+            
+            data = self.set_replies(tweets)
 
             return self.get_paginated_response(data)
         
         serializer = self.get_serializer(queryset, many=True)
-        data = serializer.data
+        tweets = serializer.data
+        
+        data = self.set_replies(tweets)
 
         return Response(data, status=status.HTTP_200_OK)
     
@@ -43,3 +47,10 @@ class TweetViewSet(ModelViewSet):
         data = serializer.data
         
         return Response(data, status=status.HTTP_200_OK)
+    
+    def set_replies(self, tweets):
+        for tweet in tweets:
+            replies = Reply.objects.filter(tweet__id=tweet.get("id"))[0:5]
+            tweet["replies"] = ReplySerializer(replies, many=True).data
+        
+        return tweets

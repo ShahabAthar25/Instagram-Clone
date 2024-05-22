@@ -15,14 +15,6 @@ class TweetSerializer(serializers.ModelSerializer):
             "id": { "read_only": True },
         }
 
-    def to_representation(self, instance):
-        request = super().to_representation(instance)
-        
-        replies = Reply.objects.filter(tweet__id=request.get("id"))[0:5]
-        request["replies"] = ReplySerializer(replies, many=True).data
-        
-        return request
-
     def create(self, validated_data):
         user = self.context["request"].user
         return Tweet.objects.create(owner=user, **validated_data)
