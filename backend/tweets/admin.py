@@ -61,9 +61,9 @@ class ReplyAdmin(admin.ModelAdmin):
     list_display = ('owner', 'content', 'views', 'created_at')
     list_filter = ('created_at',)
     
-    readonly_fields = ('views', 'created_at', 'owner', 'tweet', 'parent_reply')
-    
     inlines = [ImageInline]
+    
+    readonly_fields = ('views', 'created_at', 'owner')
 
     search_fields = ('owner__username', 'content')
     ordering = ('-created_at',)
@@ -79,6 +79,13 @@ class ReplyAdmin(admin.ModelAdmin):
             ('Statistics', {'fields': ('views',)}),
             ('Dates', {'fields': ('created_at',)})
         )
+        
+    def get_readonly_fields(self, request, obj):
+        if not obj:
+            return self.readonly_fields
+        
+        obj.clean()
+        return self.readonly_fields + ('tweet', 'parent_reply')
     
     def save_model(self, request, obj, form, change):
         if not obj.pk:
@@ -91,9 +98,13 @@ class ReplyAdmin(admin.ModelAdmin):
         for formset in formsets:
             if isinstance(formset, ImageInline):
                 for obj in formset.save(commit=False):
-                    obj.tweet = form.instance
+                    if form.instance.tweet is not None:
+                        obj.tweet = form.instance
+                    else:
+                        obj.reply = form.instance
+
                     obj.save()
-    
+
 
 admin.site.register(Tweet, TweetAdmin)
 admin.site.register(Reply, ReplyAdmin)

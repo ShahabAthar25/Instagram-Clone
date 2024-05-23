@@ -1,6 +1,8 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import ParseError, bad_request, NotFound
+from django.shortcuts import get_object_or_404
 
 from .models import Tweet, Reply
 from .serializers import *
@@ -24,17 +26,13 @@ class TweetViewSet(ModelViewSet):
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
-            tweets = serializer.data
+            data = serializer.data
             
-            data = self.set_replies(tweets)
-
             return self.get_paginated_response(data)
         
         serializer = self.get_serializer(queryset, many=True)
-        tweets = serializer.data
+        data = serializer.data
         
-        data = self.set_replies(tweets)
-
         return Response(data, status=status.HTTP_200_OK)
     
     def retrieve(self, request, *args, **kwargs):
@@ -47,10 +45,33 @@ class TweetViewSet(ModelViewSet):
         data = serializer.data
         
         return Response(data, status=status.HTTP_200_OK)
+
+class ReplyViewset(ModelViewSet):
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+    permission_classes = (TweetReplyPermissions,)
+    lookup_field = "pk"
+    lookup_url_kwarg = "tweet_reply_id"
     
-    def set_replies(self, tweets):
-        for tweet in tweets:
-            replies = Reply.objects.filter(tweet__id=tweet.get("id"))[0:5]
-            tweet["replies"] = ReplySerializer(replies, many=True).data
+    def get_queryset(self):
+        parent = self.request.GET.get("parent", None)
+        if parent == "tweet":
+            return Reply.objects.filter(tweet__id=self.kwargs.get("tweet_reply_pk"))
+        elif parent == "reply":
+            return Reply.objects.filter(parent_reply__id=self.kwargs.get("tweet_reply_pk"))
+        else:
+            raise ParseError(detail="Query parameter (parent) was either not provided or did not match the acceptable values. (ACCEPTABLE VALUES: tweet, reply)")
+    
+    def perform_create(self, serializer):
+        parent = self.request.GET.get("parent", None)
+        if not parent:
+            raise ParseError(detail="Query parameter (parent) was either not provided or did not match the acceptable values. (ACCEPTABLE VALUES: tweet, reply)")
         
-        return tweets
+        if parent == "tweet":
+            tweet = get_object_or_404(Tweet, pk=self.kwargs.get("tweet_reply_pk"))
+            serializer.save(tweet=tweet)
+        elif parent == "reply":
+            reply = get_object_or_404(Reply, pk=self.kwargs.get("tweet_reply_pk"))
+            serializer.save(parent_reply=reply)
+        else:
+            raise ParseError(detail="Query Parameter (parent) was either not provided or did not match the acceptable values. (ACCEPTABLE VALUES: tweet, reply)")

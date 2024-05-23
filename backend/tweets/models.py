@@ -38,7 +38,7 @@ class Reply(models.Model):
         if self.tweet:
             return f"@{self.owner.username}'s reply (ID: {self.pk}) to {self.tweet.owner.username}'s tweet (ID: {self.tweet.pk})"
 
-        return f"@{self.owner.username}'s reply (ID: {self.pk}) to {self.tweet.owner.username}'s reply (ID: {self.tweet.pk})"
+        return f"@{self.owner.username}'s reply (ID: {self.pk}) to {self.parent_reply.owner.username}'s reply (ID: {self.parent_reply.pk})"
 
 class Image(models.Model):
     tweet = models.ForeignKey(Tweet, on_delete=models.CASCADE, blank=True, null=True)
