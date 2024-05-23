@@ -1,12 +1,12 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.exceptions import ParseError, bad_request, NotFound
+from rest_framework.exceptions import ParseError
 from django.shortcuts import get_object_or_404
 
 from .models import Tweet, Reply
 from .serializers import *
-from .permissions import TweetReplyPermissions
+from .permissions import TweetReplyPermissions, IsOwnerOrReadonly
 
 class TweetViewSet(ModelViewSet):
     queryset = Tweet.objects.all()
@@ -46,13 +46,12 @@ class TweetViewSet(ModelViewSet):
         
         return Response(data, status=status.HTTP_200_OK)
 
-class ReplyViewset(ModelViewSet):
+class ListCreateReplyView(generics.ListCreateAPIView):
     queryset = Reply.objects.all()
     serializer_class = ReplySerializer
     permission_classes = (TweetReplyPermissions,)
     lookup_field = "pk"
-    lookup_url_kwarg = "tweet_reply_id"
-    
+
     def get_queryset(self):
         parent = self.request.GET.get("parent", None)
         if parent == "tweet":
@@ -75,3 +74,9 @@ class ReplyViewset(ModelViewSet):
             serializer.save(parent_reply=reply)
         else:
             raise ParseError(detail="Query Parameter (parent) was either not provided or did not match the acceptable values. (ACCEPTABLE VALUES: tweet, reply)")
+
+class RetireveUpdateDestroyReplyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+    permission_classes = (IsOwnerOrReadonly,)
+    lookup_field = "pk"
