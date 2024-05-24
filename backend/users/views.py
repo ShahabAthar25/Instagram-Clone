@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from .serializers import *
 from .models import *
-from .permissions import IsOwnerOrReadOnlyPermission
+from .permissions import IsOwnerOrReadOnlyPermission, IsOwnerBookmarkPermission
 
 
 class RegistrationView(generics.GenericAPIView):
@@ -107,3 +107,15 @@ class FollowUnfollowView(generics.GenericAPIView):
         follower.following.remove(followed)
         
         return Response(f"You have unfollowed @{followed.username}.")
+
+class ListCreateBookmarksView(generics.ListCreateAPIView):
+    serializer_class = BookmarkSerializer
+    
+    def get_queryset(self):
+        return Bookmark.objects.filter(user__id=self.request.user.id)
+
+class DestroyBookmarksView(generics.DestroyAPIView):
+    queryset = Bookmark.objects.all()
+    serializer_class = BookmarkSerializer
+    permission_classes = (IsOwnerBookmarkPermission,)
+    lookup_field = "pk"

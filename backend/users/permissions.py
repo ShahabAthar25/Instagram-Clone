@@ -6,3 +6,7 @@ class IsOwnerOrReadOnlyPermission(permissions.BasePermission):
             return True
         
         return obj.id == request.user.id
+
+class IsOwnerBookmarkPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.user.id == request.user.id
