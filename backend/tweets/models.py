@@ -10,7 +10,7 @@ class Tweet(models.Model):
     views = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     quote_tweet = models.ForeignKey('self', on_delete=models.SET_NULL, related_name="quoted_by", blank=True, null=True)
-    
+
     def __str__(self):
         return f"@{self.owner.username}'s Tweet (ID: {self.pk})"
 
