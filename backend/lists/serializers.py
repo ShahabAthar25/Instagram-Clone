@@ -1,6 +1,9 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 from .models import List
+
+User = get_user_model()
 
 class ListSerializer(serializers.ModelSerializer):
     followed_users = serializers.SerializerMethodField("get_followed_users_count")
