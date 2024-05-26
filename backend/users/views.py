@@ -1,4 +1,5 @@
-from rest_framework import status, generics, permissions, mixins
+import json
+from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.shortcuts import get_object_or_404
@@ -46,22 +47,28 @@ class LogoutView(generics.GenericAPIView):
     
     def post(self, request, *args, **kwargs):
         try:
-            serializer = self.get_serializer(data=request.body)
-            serializer.is_valid(raise_exception=True)
-            refresh_token = serializers.data["refresh"]
+            data = json.loads(request.body)
+            request.body = data
+        except json.JSONDecodeError:
+            return Response({ "detail": "Invalid JSON" }, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.body)
+        serializer.is_valid(raise_exception=True)
+        refresh_token = serializer.data["refresh"]
 
+        try:
             token = RefreshToken(refresh_token)
             token.blacklist()
-            
+
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class RetrieveUpdateUserView(generics.RetrieveUpdateAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsOwnerOrReadOnlyPermission,)
-    lookup_field = "pk"
+    
+    def get_object(self):
+        return self.request.user
 
 class ListFollowersView(generics.ListAPIView):
     serializer_class = UserSerializer
@@ -90,7 +97,7 @@ class FollowUnfollowView(generics.GenericAPIView):
             followed.followers.add(follower)
             follower.following.add(followed)
             
-            return Response(f"You have followed @{followed.username}.")
+            return Response(f"You have followed @{followed.username}.", status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response("You have already followed this user.", status=status.HTTP_409_CONFLICT)
         
@@ -106,7 +113,7 @@ class FollowUnfollowView(generics.GenericAPIView):
         followed.followers.remove(follower)
         follower.following.remove(followed)
         
-        return Response(f"You have unfollowed @{followed.username}.")
+        return Response(f"You have unfollowed @{followed.username}.", status=status.HTTP_204_NO_CONTENT)
 
 class ListCreateBookmarksView(generics.ListCreateAPIView):
     serializer_class = BookmarkSerializer

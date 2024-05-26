@@ -26,7 +26,7 @@ class RetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
 
 class FollowingListUsersView(generics.ListAPIView):
     serializer_class = UserSerializer
-    
+
     def get_queryset(self):
         _list = get_object_or_404(List, id=self.kwargs["pk"])
         return _list.following_users.all()
@@ -35,7 +35,7 @@ class FollowedListUsersView(ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (IsOwnerOrAuthenticated,)
     lookup_field = "user_id"
-    
+
     def get_queryset(self):
         _list = get_object_or_404(List, id=self.kwargs["pk"])
         return _list.followed_users.all()

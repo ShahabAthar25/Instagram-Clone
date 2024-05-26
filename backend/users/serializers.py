@@ -42,7 +42,7 @@ class LoginSerializer(serializers.Serializer):
         raise serializers.ValidationError("Incorrect Credentials")
 
 class LogoutSerializer(serializers.Serializer):
-    refresh = serializers.CharField()
+    refresh = serializers.CharField(required=True)
 
 # Imported here because tweet serializer users UserSerializer which is defined
 # above. Importing above would cause a recursion error
