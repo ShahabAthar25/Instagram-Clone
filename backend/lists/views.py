@@ -7,6 +7,8 @@ from rest_framework.viewsets import ModelViewSet
 from .models import List
 from .serializers import ListSerializer
 from .permissions import IsOwnerOrAuthenticated
+from tweets.models import Tweet
+from tweets.serializers import TweetSerializer
 from tweets.permissions import IsOwnerOrReadonly
 from users.serializers import UserSerializer
 from users.models import User
@@ -23,7 +25,7 @@ class RetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "pk"
 
 class FollowingListUsersView(generics.ListAPIView):
-    serializer_class = ListSerializer
+    serializer_class = UserSerializer
     
     def get_queryset(self):
         _list = get_object_or_404(List, id=self.kwargs["pk"])
@@ -98,3 +100,12 @@ class FollowUnfollowListView(generics.GenericAPIView):
         _list.followed_users.remove(request.user)
 
         return Response("You have unfollowed this list.", status=status.HTTP_200_OK)
+
+class ListTweetsView(generics.ListAPIView):
+    serializer_class = TweetSerializer
+    
+    def get_queryset(self):
+        _list = get_object_or_404(List, pk=self.kwargs["pk"])
+        followed_users = _list.followed_users.all()
+        
+        return Tweet.objects.filter(owner__in=followed_users).order_by("-created_at")

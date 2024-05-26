@@ -12,4 +12,5 @@ urlpatterns = [
     path("<int:pk>/following/", FollowingListUsersView.as_view(), name="following-users-lists"),
     path("<int:pk>/followed/", include(router.urls)),
     path("<int:pk>/follow/", FollowUnfollowListView.as_view(), name="follow-users-lists"),
+    path("<int:pk>/tweets/", ListTweetsView.as_view(), name="list-tweets"),
 ]
