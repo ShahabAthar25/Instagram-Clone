@@ -1,8 +1,5 @@
-from collections.abc import Callable, Sequence
-from typing import Any
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.http import HttpRequest
 
 from .forms import *
 from .models import *
