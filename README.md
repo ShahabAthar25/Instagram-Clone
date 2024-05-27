@@ -6,6 +6,14 @@ The **_Twitter API Clone_**, developed by Shahab Athar, is a complete replicatio
 
 To setup the the twitter api clone, make sure that **python, pip and git are installed**.
 
+### Clone the repository
+
+Before doing anything let's make sure you have cloned this repository. Clone the repository by running the following command
+
+```bash
+git clone https://github.com/ShahabAthar25/Twitter-Django-NextJS.git
+```
+
 ### Setup vitual enviroment
 
 We will create the vitual enviroment using _virtualenv_ package. Feel free to use any other library. Install virtualenv by using the following commands
@@ -53,7 +61,7 @@ mv .env.template .env
 Now, all you need to do is set your **SECRET_KEY** in the **.env** file. To generate a secret key open the python shell by running the following command
 
 ```bash
-# To open up the python shell
+# Open up the python shell
 python
 ```
 
