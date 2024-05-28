@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import ParseError
 from django.shortcuts import get_object_or_404
+from django.db.models import F
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import Tweet, Reply
 from .serializers import *
@@ -15,11 +18,10 @@ class TweetViewSet(ModelViewSet):
     lookup_field = "pk"
     
     def list(self, request, *args, **kwargs):
-        tweets = self.get_queryset()
-
-        for tweet in tweets:
-            tweet.views += 1
-            tweet.save()
+        followed_tweets = Tweet.objects.filter(owner__in=request.user.following.all())
+        followed_tweet_ids = followed_tweets.values_list('id', flat=True)
+        additional_tweets = Tweet.objects.exclude(id__in=followed_tweet_ids)
+        tweets = list(followed_tweets) + list(additional_tweets)
 
         queryset = self.filter_queryset(tweets)
         
@@ -45,6 +47,14 @@ class TweetViewSet(ModelViewSet):
         data = serializer.data
         
         return Response(data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        tweet = self.get_object()
+        
+        if timezone.now() - tweet.created_at > timedelta(minutes=15):
+            return Response({ "detail": "Tweets are only editable after 15 minutes of creation" }, status=status.HTTP_403_FORBIDDEN)
+        
+        return super().update(request, *args, **kwargs)
 
 class ListCreateReplyView(generics.ListCreateAPIView):
     queryset = Reply.objects.all()
